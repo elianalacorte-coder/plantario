@@ -119,7 +119,7 @@ const Import = {
   // in gviz la riga 0 è il titolo, la riga 1 sono le intestazioni vere
   if (rows.length < 2) return [];
 
-  const headers = rows[1].c.map(c => c ? String(c.v || '').trim() : '');
+  const headers = rows[0].c.map(c => c ? String(c.v || '').trim() : '');
 
   return rows
     .slice(2)
