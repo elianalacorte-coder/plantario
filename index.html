@@ -65,49 +65,95 @@
 
     /* ── ONBOARDING ── */
     .onboarding {
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 32px 24px; text-align: center; background: var(--verde);
-    }
-    .onboarding h1 { font-size: 28px; color: white; margin-bottom: 8px; }
-    .onboarding p  { font-size: 15px; color: rgba(255,255,255,0.8); margin-bottom: 32px; line-height: 1.6; }
-    .ob-card {
-      background: white; border-radius: 16px; padding: 24px;
-      width: 100%; max-width: 360px; margin-bottom: 12px;
-    }
-    .ob-card h3  { font-size: 16px; margin-bottom: 8px; }
-    .ob-card p   { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
-    .ob-input {
-      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
-      border-radius: 8px; font-size: 14px; margin-bottom: 10px;
-      font-family: inherit;
-    }
-    .ob-input:focus { outline: none; border-color: var(--verde); }
-    .btn-file {
-      display: block; width: 100%; padding: 11px;
-      background: var(--verde-pale); color: var(--verde);
-      border: 1.5px dashed var(--verde); border-radius: 8px;
-      font-size: 13px; font-weight: 500; cursor: pointer;
-      text-align: center; margin-bottom: 8px;
-    }
-    .btn-primary {
-      width: 100%; padding: 12px; background: var(--verde);
-      color: white; border: none; border-radius: 10px;
-      font-size: 14px; font-weight: 500; cursor: pointer;
-    }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-secondary {
-      width: 100%; padding: 10px; background: none;
-      color: var(--verde); border: 1.5px solid var(--verde);
-      border-radius: 10px; font-size: 13px; cursor: pointer; margin-top: 6px;
-    }
-    .ob-divider {
-      display: flex; align-items: center; gap: 10px;
-      margin: 12px 0; color: var(--muted); font-size: 12px;
-    }
-    .ob-divider::before, .ob-divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #1B4332;
+}
+.ob-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px 32px;
+  text-align: center;
+}
+.ob-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.ob-payoff {
+  font-size: 15px;
+  color: rgba(255,255,255,0.55);
+}
+.ob-sheet {
+  background: #f8f6f0;
+  border-radius: 24px 24px 0 0;
+  padding: 28px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ob-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+.ob-btn-primary { background: #2D6A4F; }
+.ob-btn-white   { background: #ffffff; border: 1.5px solid #e0e0d8; }
+.ob-bico {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ob-bico-green { background: rgba(255,255,255,0.15); }
+.ob-bico-white { background: #EAF3DE; }
+.ob-btxt  { flex: 1; }
+.ob-blabel {
+  font-size: 15px; font-weight: 600;
+  color: #ffffff; margin-bottom: 2px;
+}
+.ob-blabel-dark { color: #1B4332; }
+.ob-bsub  { font-size: 11px; color: rgba(255,255,255,0.6); }
+.ob-bsub-dark { color: #5a7a6a; }
+.ob-barr  { font-size: 20px; color: rgba(255,255,255,0.4); flex-shrink: 0; }
+.ob-barr-dark { color: #2D6A4F; }
+.ob-divider {
+  display: flex; align-items: center; gap: 10px;
+}
+.ob-divider::before, .ob-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e0e0d8;
+}
+.ob-divider span { font-size: 11px; color: #aaa; }
+.ob-input {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid #e0e0d8; border-radius: 12px;
+  font-size: 14px; font-family: inherit;
+  background: #ffffff; color: #1a1a1a;
+}
+.ob-input:focus { outline: none; border-color: #2D6A4F; }
+.ob-error {
+  background: #FCEBEB; color: #791F1F;
+  border-radius: 10px; padding: 10px 14px; font-size: 13px;
+}
+.ob-template {
+  text-align: center; padding-top: 4px;
+}
+.ob-template a {
+  font-size: 12px; color: #2D6A4F;
+  font-weight: 500; text-decoration: none;
+}
     .ob-error {
       background: #FCEBEB; color: #791F1F; border-radius: 8px;
       padding: 8px 12px; font-size: 12px; margin-top: 8px;
@@ -258,37 +304,68 @@
 
   <!-- ══ ONBOARDING ══ -->
   <div v-if="!pronto" class="onboarding">
-    <h1>🌿 Le mie piante</h1>
-    <p>Gestisci il tuo balcone, giardino o orto.<br>Importa i tuoi dati per iniziare.</p>
+  <div class="ob-hero">
+    <svg width="72" height="72" viewBox="0 0 72 72" style="margin-bottom:20px">
+      <circle cx="36" cy="36" r="36" fill="rgba(255,255,255,0.08)"/>
+      <ellipse cx="34" cy="34" rx="12" ry="17" fill="#74C69D" transform="rotate(-18 34 34)"/>
+      <ellipse cx="40" cy="36" rx="10" ry="15" fill="#52B788" transform="rotate(18 40 36)"/>
+      <line x1="36" y1="48" x2="36" y2="57" stroke="#74C69D" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <h1 class="ob-title">Plantario</h1>
+    <p class="ob-payoff">Per chi coltiva con metodo</p>
+  </div>
 
-    <div class="ob-card">
-      <h3>📂 Carica un file Excel</h3>
-      <p>Carica il file .xlsx con le tue piante.<br>
-        <a href="./template_piante.xlsx"
-            style="color:var(--verde)">Scarica il template vuoto →</a>
-      </p>
-      <label class="btn-file">
-        📎 Scegli file .xlsx
-        <input type="file" accept=".xlsx,.xls" style="display:none"
-               @change="importaDaFile">
-      </label>
+  <div class="ob-sheet">
+    <label class="ob-btn ob-btn-primary">
+      <div class="ob-bico ob-bico-green">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <rect x="3" y="5" width="16" height="13" rx="2" stroke="white" stroke-width="1.5"/>
+          <path d="M7 5V4a1 1 0 011-1h6a1 1 0 011 1v1" stroke="white" stroke-width="1.5"/>
+          <path d="M11 10v4M9 12h4" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="ob-btxt">
+        <div class="ob-blabel">Carica file Excel</div>
+        <div class="ob-bsub">.xlsx con le tue piante</div>
+      </div>
+      <div class="ob-barr">›</div>
+      <input type="file" accept=".xlsx,.xls" style="display:none" @change="importaDaFile">
+    </label>
 
-      <div class="ob-divider">oppure</div>
+    <div class="ob-divider"><span>oppure</span></div>
 
-      <h3 style="margin-bottom:8px">🔗 Collega Google Sheets</h3>
-      <p>Il foglio deve essere condiviso:<br>
-         <strong>Condividi → Chiunque abbia il link → Visualizzatore</strong>
-      </p>
+    <div class="ob-btn ob-btn-white">
+      <div class="ob-bico ob-bico-white">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 11a7 7 0 1114 0A7 7 0 014 11z" stroke="#2D6A4F" stroke-width="1.5"/>
+          <path d="M11 4c-1.5 2-2.5 4-2.5 7s1 5 2.5 7" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M11 4c1.5 2 2.5 4 2.5 7s-1 5-2.5 7" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M4 11h14" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="ob-btxt">
+        <div class="ob-blabel ob-blabel-dark">Google Sheets</div>
+        <div class="ob-bsub ob-bsub-dark">Incolla il link del foglio</div>
+      </div>
+      <div class="ob-barr ob-barr-dark">›</div>
+    </div>
+
+    <div v-if="mostraInputSheets" style="margin-top:-4px">
       <input class="ob-input" v-model="sheetsUrl"
              placeholder="https://docs.google.com/spreadsheets/d/...">
       <button class="btn-primary" @click="importaDaSheets"
-              :disabled="!sheetsUrl || caricando">
-        {{ caricando ? 'Carico...' : 'Importa da Google Sheets' }}
+              :disabled="!sheetsUrl || caricando" style="margin-top:8px">
+        {{ caricando ? 'Carico...' : 'Importa' }}
       </button>
+    </div>
 
-      <div v-if="erroreImport" class="ob-error">{{ erroreImport }}</div>
+    <div v-if="erroreImport" class="ob-error">{{ erroreImport }}</div>
+
+    <div class="ob-template">
+      <a href="./template_piante.xlsx">↓ Non hai un file? Scarica il template</a>
     </div>
   </div>
+</div>
 
   <!-- ══ APP ══ -->
   <template v-else>
