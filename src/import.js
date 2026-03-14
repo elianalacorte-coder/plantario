@@ -33,6 +33,7 @@ const Import = {
   for (let i = 0; i < fogli.length; i++) {
     const nome = encodeURIComponent(fogli[i]);
     const url  = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${nome}`;
+    console.log('Fetching:', url);
     const res  = await fetch(url);
     if (!res.ok) throw new Error(`Foglio "${fogli[i]}" non raggiungibile`);
     const testo = await res.text();
