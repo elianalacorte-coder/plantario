@@ -406,6 +406,14 @@
     <!-- ── HOME ── -->
     <div v-if="vista==='home'" class="page">
       <div v-for="a in alertUrgenti" :key="a.testo"
+     :class="['alert', a.tipo==='error' ? 'alert-error' : 'alert-warn']"
+     style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+  <span>{{ a.testo }}</span>
+  <button @click="chiudiAlert(a)"
+          style="background:none;border:none;cursor:pointer;font-size:16px;opacity:0.6;flex-shrink:0;padding:0;line-height:1">
+    ✕
+  </button>
+</div>
            :class="['alert', a.tipo==='error' ? 'alert-error' : 'alert-warn']">
         {{ a.testo }}
       </div>
@@ -642,7 +650,29 @@
         </div>
       </div>
     </div>
-
+<div v-if="modalAlert.aperto" class="overlay" @click.self="ricordamelo">
+  <div class="modal">
+    <h3>Hai completato questa azione?</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+      {{ modalAlert.alert?.testo }}
+    </p>
+    <div v-if="modalAlert.campiDaAggiornare.length > 0"
+         style="background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">
+        Verrà aggiornato
+      </div>
+      <div v-for="c in modalAlert.campiDaAggiornare" :key="c.campo"
+           style="font-size:12px;font-weight:500;color:var(--verde);padding:2px 0">
+        ✓ {{ c.label }}
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-annulla" @click="ricordamelo">Ricordamelo dopo</button>
+      <button class="btn-salva" @click="confermAzione">Fatto ✓</button>
+    </div>
+  </div>
+</div>
+  
   </template>
 </div>
 
