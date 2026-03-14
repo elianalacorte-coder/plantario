@@ -9,6 +9,7 @@ Vue.createApp({
       caricando:   false,
       erroreImport: '',
       sheetsUrl:   '',
+      mostraInputSheets: false, 
       vista:       'home',
       vistaPrec:   'home',
       inventario:  [],
