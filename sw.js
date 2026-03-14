@@ -1,4 +1,4 @@
-const CACHE = 'piante-v1';
+const CACHE = 'piante-v2';
 const ASSETS = [
   './',
   './index.html',
