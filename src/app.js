@@ -135,16 +135,19 @@ Vue.createApp({
     },
 
     _salvaDati(dati) {
-      Storage.salva('inventario', dati.inventario);
-      Storage.salva('calendario', dati.calendario);
-      Storage.salva('semine',     dati.semine);
-      Storage.salvaConfig({ ultimoAggiornamento: new Date().toLocaleString('it-IT') });
-      this.inventario = dati.inventario;
-      this.calendario = dati.calendario;
-      this.semine     = dati.semine;
-      this.config     = Storage.caricaConfig();
-      this.pronto     = true;
-      },
+  Storage.salva('inventario', dati.inventario);
+  Storage.salva('calendario', dati.calendario);
+  Storage.salva('semine',     dati.semine);
+  Storage.salvaConfig({ ultimoAggiornamento: new Date().toLocaleString('it-IT') });
+  this.inventario = dati.inventario;
+  this.calendario = dati.calendario;
+  this.semine     = dati.semine;
+  this.config     = Storage.caricaConfig();
+  this.modalAlert = { aperto: false, alert: null, campiDaAggiornare: [] };
+  Vue.nextTick(() => {
+    this.pronto = true;
+  });
+},
 
     // ── NAVIGAZIONE ─────────────────────────────────────────────────────────
     cambiaVista(id) { this.vistaPrec = id; this.vista = id; },
