@@ -23,24 +23,26 @@ const Import = {
 
   // ── DA GOOGLE SHEETS PUBBLICO ────────────────────────────────────────────
   async daGoogleSheets(url) {
-    const id = Import._estraiIdSheets(url);
-    if (!id) throw new Error('URL Google Sheets non valido');
+  const id = Import._estraiIdSheets(url);
+  if (!id) throw new Error('URL Google Sheets non valido');
 
-    const fogli = ['🌿 Inventario', '📅 Calendario', '🌱 Semine'];
-    const risultato = { inventario: [], calendario: [], semine: [] };
-    const chiavi    = ['inventario', 'calendario', 'semine'];
+  const fogli  = ['🌿 Inventario', '📅 Calendario', '🌱 Semine'];
+  const chiavi = ['inventario', 'calendario', 'semine'];
+  const risultato = { inventario: [], calendario: [], semine: [] };
 
-    for (let i = 0; i < fogli.length; i++) {
-      const nomeFoglio = encodeURIComponent(fogli[i]);
-      const exportUrl  = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${nomeFoglio}`;
-      const res = await fetch(exportUrl);
-      if (!res.ok) throw new Error(`Foglio "${fogli[i]}" non trovato o non pubblico`);
-      const csv = await res.text();
-      risultato[chiavi[i]] = Import._csvToObjects(csv);
-    }
+  for (let i = 0; i < fogli.length; i++) {
+    const nome = encodeURIComponent(fogli[i]);
+    const url  = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${nome}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`Foglio "${fogli[i]}" non raggiungibile`);
+    const testo = await res.text();
+    // Google restituisce json con prefisso: /*O_o*/\ngoogle.visualization.Query.setResponse(...)
+    const json  = JSON.parse(testo.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    risultato[chiavi[i]] = Import._gvizToObjects(json);
+  }
 
-    return risultato;
-  },
+  return risultato;
+},
 
   // ── PRIVATI ──────────────────────────────────────────────────────────────
   _leggiWorkbook(wb) {
@@ -109,4 +111,26 @@ const Import = {
         return obj;
       });
   },
+  _gvizToObjects(json) {
+  const cols = json.table.cols.map(c => c.label || '');
+  const rows = json.table.rows || [];
+
+  // trova la riga delle intestazioni (riga 1, indice 1)
+  // in gviz la riga 0 è il titolo, la riga 1 sono le intestazioni vere
+  if (rows.length < 2) return [];
+
+  const headers = rows[1].c.map(c => c ? String(c.v || '').trim() : '');
+
+  return rows
+    .slice(2)
+    .filter(r => r && r.c && r.c[0] && r.c[0].v)
+    .filter(r => !String(r.c[0].v).startsWith('LEGENDA'))
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, j) => {
+        if (h) obj[h] = r.c[j] ? String(r.c[j].v ?? '').trim() : '';
+      });
+      return obj;
+    });
+},
 };
