@@ -126,13 +126,17 @@ const Import = {
     // Inventario: intestazioni in cols, dati in rows dalla riga 0
     // La prima colonna di cols ha il titolo del foglio attaccato — lo puliamo
     headers = cols.map((c, i) => {
-      let label = String(c.label || '').trim();
-      // rimuove il titolo del foglio dalla prima intestazione
-      if (i === 0 && label.includes('Nome comune')) {
-        label = 'Nome comune';
-      }
-      return label;
-    });
+  let label = String(c.label || '').trim();
+  // La prima colonna ha il titolo del foglio attaccato prima del nome reale
+  // es. "🌵 INVENTARIO PIANTE — BALCONE BOLOGNA Nome comune"
+  // Prendiamo solo la parte dopo l'ultima parola del titolo
+  if (i === 0 && label.length > 30) {
+    // cerca pattern "parola Maiuscola" dopo uno spazio
+    const match = label.match(/\s([A-ZÀÈÌÒÙ][a-zàèìòù].*)$/);
+    if (match) label = match[1].trim();
+  }
+  return label;
+});
     dataRows = rows;
   } else {
     // Calendario e Semine: intestazioni in row1, dati da row2 in poi
