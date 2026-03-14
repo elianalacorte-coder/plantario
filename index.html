@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2D6A4F">
+  <title>🌵 Le mie piante</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --verde:      #2D6A4F;
+      --verde-light:#74C69D;
+      --verde-pale: #EAF3DE;
+      --text:       #1a1a1a;
+      --muted:      #666;
+      --bg:         #f5f5f0;
+      --card:       #ffffff;
+      --border:     #e0e0d8;
+      --rosso:      #E24B4A;
+      --arancio:    #EF9F27;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; padding-bottom: 80px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--verde); color: white;
+      padding: 16px 16px 18px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header h1 { font-size: 19px; font-weight: 500; }
+    .header p  { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card); border-top: 1px solid var(--border);
+      display: flex; z-index: 100;
+    }
+    .nav-btn {
+      flex: 1; padding: 10px 4px 12px; background: none; border: none;
+      cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; gap: 3px;
+      color: var(--muted); font-size: 10px; transition: color 0.15s;
+    }
+    .nav-btn.active { color: var(--verde); }
+    .nav-btn .ico   { font-size: 20px; }
+
+    /* ── LAYOUT ── */
+    .page   { padding: 12px; }
+    .card   {
+      background: var(--card); border-radius: 12px;
+      border: 1px solid var(--border); padding: 14px; margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 11px; font-weight: 500; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+    }
+
+    /* ── ONBOARDING ── */
+    .onboarding {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px; text-align: center; background: var(--verde);
+    }
+    .onboarding h1 { font-size: 28px; color: white; margin-bottom: 8px; }
+    .onboarding p  { font-size: 15px; color: rgba(255,255,255,0.8); margin-bottom: 32px; line-height: 1.6; }
+    .ob-card {
+      background: white; border-radius: 16px; padding: 24px;
+      width: 100%; max-width: 360px; margin-bottom: 12px;
+    }
+    .ob-card h3  { font-size: 16px; margin-bottom: 8px; }
+    .ob-card p   { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+    .ob-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 14px; margin-bottom: 10px;
+      font-family: inherit;
+    }
+    .ob-input:focus { outline: none; border-color: var(--verde); }
+    .btn-file {
+      display: block; width: 100%; padding: 11px;
+      background: var(--verde-pale); color: var(--verde);
+      border: 1.5px dashed var(--verde); border-radius: 8px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      text-align: center; margin-bottom: 8px;
+    }
+    .btn-primary {
+      width: 100%; padding: 12px; background: var(--verde);
+      color: white; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 10px; background: none;
+      color: var(--verde); border: 1.5px solid var(--verde);
+      border-radius: 10px; font-size: 13px; cursor: pointer; margin-top: 6px;
+    }
+    .ob-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 12px 0; color: var(--muted); font-size: 12px;
+    }
+    .ob-divider::before, .ob-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .ob-error {
+      background: #FCEBEB; color: #791F1F; border-radius: 8px;
+      padding: 8px 12px; font-size: 12px; margin-top: 8px;
+    }
+
+    /* ── ALERT ── */
+    .alert {
+      border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;
+      font-size: 13px; border-left: 3px solid;
+    }
+    .alert-warn  { background: #FFF3CD; border-color: #BA7517; color: #633806; }
+    .alert-error { background: #FCEBEB; border-color: var(--rosso); color: #791F1F; }
+
+    /* ── STATS ── */
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .stat  {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px; text-align: center;
+    }
+    .stat-num   { font-size: 28px; font-weight: 500; line-height: 1; }
+    .stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; text-transform: uppercase; }
+
+    /* ── LISTA PIANTE ── */
+    .plant-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+    }
+    .plant-row:last-child { border-bottom: none; }
+    .dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .plant-nome { font-size: 14px; font-weight: 500; }
+    .plant-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .plant-right { margin-left: auto; font-size: 11px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+
+    /* ── FILTRI ── */
+    .chips {
+      display: flex; gap: 6px; overflow-x: auto;
+      padding-bottom: 8px; margin-bottom: 6px;
+    }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      font-size: 11px; padding: 4px 12px; border-radius: 16px;
+      white-space: nowrap; cursor: pointer; font-weight: 500;
+      border: 1.5px solid var(--border); color: var(--muted); background: var(--card);
+    }
+    .chip.on { background: var(--verde); color: white; border-color: var(--verde); }
+
+    /* ── DETTAGLIO ── */
+    .back { background: none; border: none; cursor: pointer; color: var(--verde);
+            font-size: 13px; font-weight: 500; padding: 10px 0 4px;
+            display: flex; align-items: center; gap: 4px; }
+    .field {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 9px 0; border-bottom: 1px solid var(--border); gap: 12px;
+    }
+    .field:last-child { border-bottom: none; }
+    .field-label { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .field-val   { font-size: 12px; font-weight: 500; text-align: right; }
+    .field-val.edit { color: var(--verde); cursor: pointer; }
+    .field-val.red  { color: var(--rosso); }
+
+    /* ── CALENDARIO ── */
+    .cal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .cal-header span { font-size: 15px; font-weight: 500; }
+    .cal-arrow { background: none; border: none; font-size: 22px;
+                 cursor: pointer; color: var(--muted); padding: 0 8px; }
+    .cal-row {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .cal-row:last-child { border-bottom: none; }
+    .cal-check {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+      border: 2px solid var(--border); cursor: pointer; margin-top: 2px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .cal-check.done { background: var(--verde); border-color: var(--verde);
+                      color: white; font-size: 11px; }
+    .cal-badge {
+      font-size: 9px; font-weight: 500; padding: 2px 6px;
+      border-radius: 4px; white-space: nowrap; display: inline-block; margin-bottom: 3px;
+    }
+    .cal-pianta { font-size: 13px; font-weight: 500; }
+    .cal-azione { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* ── SEMINE ── */
+    .semina-nome { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 200; display: flex; align-items: flex-end;
+    }
+    .modal {
+      background: var(--card); border-radius: 16px 16px 0 0;
+      padding: 20px; width: 100%;
+    }
+    .modal h3    { font-size: 15px; margin-bottom: 12px; }
+    .modal input, .modal textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 14px; font-family: inherit;
+      background: var(--bg); color: var(--text); margin-bottom: 10px;
+    }
+    .modal textarea { height: 80px; resize: vertical; }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .btn-salva   { background: var(--verde); color: white; border: none; font-weight: 500; }
+    .btn-annulla { background: none; border: 1.5px solid var(--border); color: var(--muted); }
+
+    /* ── SETTINGS ── */
+    .settings-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label { font-size: 14px; }
+    .settings-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .btn-danger {
+      width: 100%; padding: 11px; background: #FCEBEB; color: #791F1F;
+      border: 1.5px solid #F7C1C1; border-radius: 10px;
+      font-size: 13px; cursor: pointer; margin-top: 6px;
+    }
+
+    /* ── LOADING ── */
+    .loading { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border);
+      border-top-color: var(--verde); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #1B4332; color: white; padding: 10px 20px;
+      border-radius: 20px; font-size: 13px; z-index: 300;
+      animation: fadeup 0.3s ease;
+    }
+    @keyframes fadeup { from { opacity:0; transform: translateX(-50%) translateY(10px); } }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ ONBOARDING ══ -->
+  <div v-if="!pronto" class="onboarding">
+    <h1>🌿 Le mie piante</h1>
+    <p>Gestisci il tuo balcone, giardino o orto.<br>Importa i tuoi dati per iniziare.</p>
+
+    <div class="ob-card">
+      <h3>📂 Carica un file Excel</h3>
+      <p>Carica il file .xlsx con le tue piante.<br>
+         <a href="https://TUONOME.github.io/piante-balcone/template.xlsx"
+            style="color:var(--verde)">Scarica il template vuoto →</a>
+      </p>
+      <label class="btn-file">
+        📎 Scegli file .xlsx
+        <input type="file" accept=".xlsx,.xls" style="display:none"
+               @change="importaDaFile">
+      </label>
+
+      <div class="ob-divider">oppure</div>
+
+      <h3 style="margin-bottom:8px">🔗 Collega Google Sheets</h3>
+      <p>Il foglio deve essere condiviso:<br>
+         <strong>Condividi → Chiunque abbia il link → Visualizzatore</strong>
+      </p>
+      <input class="ob-input" v-model="sheetsUrl"
+             placeholder="https://docs.google.com/spreadsheets/d/...">
+      <button class="btn-primary" @click="importaDaSheets"
+              :disabled="!sheetsUrl || caricando">
+        {{ caricando ? 'Carico...' : 'Importa da Google Sheets' }}
+      </button>
+
+      <div v-if="erroreImport" class="ob-error">{{ erroreImport }}</div>
+    </div>
+  </div>
+
+  <!-- ══ APP ══ -->
+  <template v-else>
+
+    <!-- Header -->
+    <div class="header">
+      <h1>{{ titoloHeader }}</h1>
+      <p>{{ sottotitoloHeader }}</p>
+    </div>
+
+    <!-- Toast -->
+    <div v-if="toast" class="toast">{{ toast }}</div>
+
+    <!-- ── HOME ── -->
+    <div v-if="vista==='home'" class="page">
+      <div v-for="a in alertUrgenti" :key="a.testo"
+           :class="['alert', a.tipo==='error' ? 'alert-error' : 'alert-warn']">
+        {{ a.testo }}
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-num" style="color:var(--verde)">{{ inventario.length }}</div>
+          <div class="stat-label">Piante totali</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" style="color:var(--rosso)">{{ interventiMese.length }}</div>
+          <div class="stat-label">Interventi questo mese</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💧 Giorni dall'ultima annaffiatura</div>
+        <div v-if="piantePerGiorni.length===0"
+             style="font-size:13px;color:var(--muted)">
+          Nessuna data registrata — annaffia una pianta per iniziare
+        </div>
+        <div v-for="p in piantePerGiorni" :key="p.nome"
+             class="plant-row" @click="apriDettaglio(p.raw)">
+          <div class="dot" :style="{background: coloreGiorni(p.giorni)}"></div>
+          <div style="flex:1">
+            <div class="plant-nome">{{ p.nome }}</div>
+            <div class="plant-sub">{{ p.zona }}</div>
+          </div>
+          <div class="plant-right" :style="{color: coloreGiorni(p.giorni)}">
+            {{ p.giorni }} gg fa
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📅 Questo mese</div>
+        <div v-if="interventiMese.length===0"
+             style="font-size:13px;color:var(--muted)">
+          Nessun intervento per questo mese
+        </div>
+        <div v-for="item in interventiMese.slice(0,5)" :key="item.pianta+item.azione"
+             class="cal-row" style="padding:8px 0">
+          <div style="flex:1">
+            <div class="cal-pianta">{{ item.pianta }}</div>
+            <div class="cal-azione">{{ item.azione }}</div>
+          </div>
+        </div>
+        <div v-if="interventiMese.length>5"
+             style="font-size:12px;color:var(--verde);margin-top:6px;cursor:pointer"
+             @click="vista='calendario'">
+          + altri {{ interventiMese.length-5 }} → vedi tutti
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INVENTARIO ── -->
+    <div v-else-if="vista==='inventario'" class="page">
+      <div class="chips">
+        <div v-for="f in filtriTipo" :key="f"
+             :class="['chip', filtro===f ? 'on' : '']"
+             @click="filtro=f">{{ f }}</div>
+      </div>
+      <div class="card" style="padding:0 14px">
+        <div v-for="p in pianteFiltrate" :key="p['Nome comune']"
+             class="plant-row" @click="apriDettaglio(p)">
+          <div class="dot" :style="{background: coloreTipo(p['Tipo'])}"></div>
+          <div style="flex:1">
+            <div class="plant-nome">{{ p['Nome comune'] }}</div>
+            <div class="plant-sub">{{ p['Zona balcone\n(A-E)'] || p['Dove ora\n(balcone/casa)'] }}</div>
+          </div>
+          <div class="plant-right" :style="{color: coloreStato(p['Stato salute'])}">
+            {{ p['Stato salute'] }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DETTAGLIO ── -->
+    <div v-else-if="vista==='dettaglio' && piantaSel" class="page">
+      <button class="back" @click="vista=vistaPrec">← Indietro</button>
+      <div class="card" :style="{borderColor: coloreTipo(piantaSel['Tipo']), borderWidth:'2px'}">
+        <div style="font-size:18px;font-weight:500">{{ piantaSel['Nome comune'] }}</div>
+        <div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:2px">
+          {{ piantaSel['Nome scientifico'] }}
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:var(--verde-pale);color:var(--verde);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500">
+            {{ piantaSel['Tipo'] }}
+          </span>
+          <span style="background:#E6F1FB;color:#185FA5;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500">
+            {{ piantaSel['Zona balcone\n(A-E)'] || piantaSel['Dove ora\n(balcone/casa)'] }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div v-for="c in campiDettaglio" :key="c.chiave" class="field">
+          <span class="field-label">{{ c.label }}</span>
+          <span :class="['field-val', c.edit?'edit':'', c.red?'red':'']"
+                @click="c.edit && apriModal(c.chiave, c.label, piantaSel[c.chiave], c.multi)">
+            {{ piantaSel[c.chiave] || '—' }}
+            <span v-if="c.edit" style="font-size:10px;opacity:0.5"> ✏️</span>
+          </span>
+        </div>
+      </div>
+
+      <button class="btn-primary" @click="annaffiaOra">💧 Annaffiata ora</button>
+      <button class="btn-secondary" @click="vista=vistaPrec">← Torna alla lista</button>
+    </div>
+
+    <!-- ── CALENDARIO ── -->
+    <div v-else-if="vista==='calendario'" class="page">
+      <div class="cal-header">
+        <button class="cal-arrow" @click="mesePrev">‹</button>
+        <span>{{ MESI_NOMI[meseIdx] }}</span>
+        <button class="cal-arrow" @click="meseNext">›</button>
+      </div>
+      <div class="card" style="padding:0 14px">
+        <div v-if="interventiMeseVista.length===0"
+             style="padding:20px 0;text-align:center;color:var(--muted);font-size:13px">
+          Nessun intervento per {{ MESI_NOMI[meseIdx] }}
+        </div>
+        <div v-for="item in interventiMeseVista" :key="item.pianta+item.azione"
+             class="cal-row">
+          <div :class="['cal-check', item.fatto?'done':'']"
+               @click="toggleFatto(item)">
+            <span v-if="item.fatto">✓</span>
+          </div>
+          <div style="flex:1">
+            <span :class="'cal-badge'" :style="stileBadge(item.azione)">
+              {{ item.azione }}
+            </span>
+            <div class="cal-pianta">{{ item.pianta }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEMINE ── -->
+    <div v-else-if="vista==='semine'" class="page">
+      <div v-if="semine.length===0" class="loading">
+        Nessuna semina registrata
+      </div>
+      <div v-for="s in semine" :key="s['Specie']" class="card">
+        <div class="semina-nome">🌱 {{ s['Specie'] }}</div>
+        <div class="field">
+          <span class="field-label">Data semina</span>
+          <span class="field-val edit"
+                @click="apriModalSemina(s['Specie'], 'Data semina', s['Data semina'])">
+            {{ s['Data semina'] || '— tocca per aggiungere ✏️' }}
+          </span>
+        </div>
+        <div class="field">
+          <span class="field-label">Germinati</span>
+          <span class="field-val edit"
+                @click="apriModalSemina(s['Specie'], 'N° germinati', s['N° germinati'])">
+            {{ s['N° germinati'] || '— ✏️' }}
+          </span>
+        </div>
+        <div class="field">
+          <span class="field-label">Note</span>
+          <span class="field-val" style="font-size:11px;max-width:200px;text-align:right">
+            {{ s['Esito / note'] || '—' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── IMPOSTAZIONI ── -->
+    <div v-else-if="vista==='settings'" class="page">
+      <div class="card">
+        <div class="card-title">Dati</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Piante caricate</div>
+            <div class="settings-sub">{{ inventario.length }} piante · {{ semine.length }} semine</div>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Ultimo aggiornamento</div>
+            <div class="settings-sub">{{ config.ultimoAggiornamento || 'Mai' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Notifiche</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Notifiche mattutine</div>
+            <div class="settings-sub">Avviso interventi giornalieri</div>
+          </div>
+          <button @click="attivaNotifiche"
+                  style="background:var(--verde);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">
+            {{ notificheAttive ? '✅ Attive' : 'Attiva' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Esporta</div>
+        <button class="btn-primary" @click="esporta">
+          📥 Scarica Excel aggiornato
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Reimposta</div>
+        <button class="btn-danger" @click="reimposta">
+          🗑️ Cancella tutti i dati e ricomincia
+        </button>
+      </div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav">
+      <button v-for="t in tabs" :key="t.id"
+              :class="['nav-btn', (vista===t.id || (vista==='dettaglio'&&vistaPrec===t.id)) ? 'active' : '']"
+              @click="cambiaVista(t.id)">
+        <span class="ico">{{ t.ico }}</span>{{ t.label }}
+      </button>
+    </nav>
+
+    <!-- MODAL MODIFICA -->
+    <div v-if="modal.aperto" class="overlay" @click.self="modal.aperto=false">
+      <div class="modal">
+        <h3>✏️ {{ modal.label }}</h3>
+        <textarea v-if="modal.multi" v-model="modal.val"></textarea>
+        <input v-else v-model="modal.val" :placeholder="modal.label">
+        <div class="modal-btns">
+          <button class="btn-annulla" @click="modal.aperto=false">Annulla</button>
+          <button class="btn-salva" @click="salvaModal">Salva</button>
+        </div>
+      </div>
+    </div>
+
+  </template>
+</div>
+
+<script src="src/storage.js"></script>
+<script src="src/import.js"></script>
+<script src="src/export.js"></script>
+<script src="src/notifiche.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
