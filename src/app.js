@@ -102,6 +102,9 @@ Vue.createApp({
         fatto: !!this.spuntati[`${item.pianta}_${this.meseIdx}`]
       }));
     },
+    modalAlertTesto() {
+      return this.modalAlert && this.modalAlert.alert ? this.modalAlert.alert.testo : '';
+    },
   },
 
   methods: {
