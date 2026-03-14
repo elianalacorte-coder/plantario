@@ -650,7 +650,7 @@
         </div>
       </div>
     </div>
-<div v-if="modalAlert.aperto" class="overlay" @click.self="ricordamelo">
+<div v-if="modalAlert.aperto && modalAlert.alert" class="overlay" @click.self="ricordamelo">
   <div class="modal">
     <h3>Hai completato questa azione?</h3>
     <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5">
