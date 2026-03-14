@@ -1,7 +1,7 @@
 {
-  "name": "Le mie piante",
-  "short_name": "Piante",
-  "description": "Gestisci il tuo balcone, giardino o orto",
+  "name": "Plantario",
+  "short_name": "Plantario",
+  "description": "Per chi coltiva con metodo",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#2D6A4F",
