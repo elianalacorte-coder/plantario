@@ -138,8 +138,7 @@ Vue.createApp({
       this.semine     = dati.semine;
       this.config     = Storage.caricaConfig();
       this.pronto     = true;
-      //alert('Chiavi: ' + JSON.stringify(Object.keys(dati.inventario[0])));
-    },
+      },
 
     // ── NAVIGAZIONE ─────────────────────────────────────────────────────────
     cambiaVista(id) { this.vistaPrec = id; this.vista = id; },
