@@ -112,17 +112,29 @@ const Import = {
       });
   },
   _gvizToObjects(json) {
-  const cols = json.table.cols.map(c => c.label || '');
-  const rows = json.table.rows || [];
+  const table = json.table;
+  const rows  = table.rows || [];
+  if (rows.length < 1) return [];
 
-  // trova la riga delle intestazioni (riga 1, indice 1)
-  // in gviz la riga 0 è il titolo, la riga 1 sono le intestazioni vere
-  if (rows.length < 2) return [];
+  // Le intestazioni vere sono in table.cols ma spesso vuote
+  // Le intestazioni del foglio stanno nella PRIMA riga (indice 0) di rows
+  // I dati reali stanno dalla riga 1 in poi (saltando riga titolo e riga header)
+  
+  // Prima stampiamo cosa c'è nelle prime 3 righe per capire la struttura
+  console.log('row0:', JSON.stringify(rows[0]?.c?.map(c => c?.v)));
+  console.log('row1:', JSON.stringify(rows[1]?.c?.map(c => c?.v)));
+  console.log('row2:', JSON.stringify(rows[2]?.c?.map(c => c?.v)));
+  console.log('cols:', JSON.stringify(table.cols?.map(c => c?.label)));
 
-  const headers = rows[0].c.map(c => c ? String(c.v || '').trim() : '');
+  // Usa cols come intestazioni se hanno contenuto, altrimenti row0
+  let headers = table.cols.map(c => String(c.label || '').trim());
+  if (headers.every(h => h === '')) {
+    headers = (rows[0].c || []).map(c => c ? String(c.v || '').trim() : '');
+  }
 
-  return rows
-    .slice(1)
+  const dataRows = headers.every(h => h === '') ? rows : rows.slice(1);
+
+  return dataRows
     .filter(r => r && r.c && r.c[0] && r.c[0].v)
     .filter(r => !String(r.c[0].v).startsWith('LEGENDA'))
     .map(r => {
