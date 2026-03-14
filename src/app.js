@@ -138,6 +138,7 @@ Vue.createApp({
       this.semine     = dati.semine;
       this.config     = Storage.caricaConfig();
       this.pronto     = true;
+      alert('Prima pianta: ' + JSON.stringify(Object.keys(dati.inventario[0])));
     },
 
     // ── NAVIGAZIONE ─────────────────────────────────────────────────────────
