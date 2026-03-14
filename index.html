@@ -492,7 +492,7 @@
     <!-- ── DETTAGLIO ── -->
     <div v-else-if="vista==='dettaglio' && piantaSel" class="page">
       <button class="back" @click="vista=vistaPrec">← Indietro</button>
-      <div class="card" :style="{borderColor: coloreTipo(piantaSel['Tipo']), borderWidth:'2px'}">
+      <div class="card" :style="piantaSel ? {borderColor: coloreTipo(piantaSel['Tipo']), borderWidth:'2px'} : {}">
         <div style="font-size:18px;font-weight:500">{{ piantaSel['Nome comune'] }}</div>
         <div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:2px">
           {{ piantaSel['Nome scientifico'] }}
