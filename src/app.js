@@ -20,6 +20,8 @@ Vue.createApp({
       piantaSel:   null,
       meseIdx:     new Date().getMonth(),
       spuntati:    {},
+      alertChiusi: {},
+      modalAlert:  { aperto: false, alert: null, campiDaAggiornare: [] },
       toast:       '',
       notificheAttive: false,
       modal: { aperto: false, chiave: '', label: '', val: '', multi: false, tipo: '', specie: '' },
@@ -185,6 +187,91 @@ Vue.createApp({
     mesePrev() { this.meseIdx = (this.meseIdx+11)%12; },
     meseNext() { this.meseIdx = (this.meseIdx+1)%12;  },
 
+    chiudiAlert(alert) {
+  this.apriConfermaAlert(alert);
+},
+
+apriConfermaAlert(alert) {
+  const campi = this._analizzaAzione(alert);
+  this.modalAlert = { aperto: true, alert, campiDaAggiornare: campi };
+},
+
+_analizzaAzione(alert) {
+  const t = alert.testo.toLowerCase();
+  const campi = [];
+  const oggi = new Date().toLocaleDateString('it-IT');
+  if (t.includes('riport') || t.includes('rientr') || t.includes('casa')) {
+    campi.push({ campo: 'Dove ora\n(balcone/casa)', valore: 'Casa', label: 'Posizione → Casa' });
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+  }
+  if (t.includes('fuori') || t.includes('porta fuori')) {
+    campi.push({ campo: 'Dove ora\n(balcone/casa)', valore: 'Balcone', label: 'Posizione → Balcone' });
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+  }
+  if (t.includes('rinvas')) {
+    campi.push({ campo: 'Data ultimo\nrinvaso', valore: oggi, label: `Data rinvaso → ${oggi}` });
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+  }
+  if (t.includes('decapit') || t.includes('intervento') || t.includes('urgent')) {
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+  }
+  if (t.includes('semin')) {
+    campi.push({ campo: '_semina_oggi', valore: oggi, label: `Data semina → ${oggi}` });
+    campi.push({ campo: 'Stato salute', valore: '🌱 Seminato', label: 'Stato → Seminato' });
+  }
+  if (t.includes('trapiant')) {
+    campi.push({ campo: 'Dove ora\n(balcone/casa)', valore: 'Balcone', label: 'Posizione → Balcone' });
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+    campi.push({ campo: '_trapianto_oggi', valore: oggi, label: `Data trapianto → ${oggi}` });
+  }
+  if (t.includes('concime') || t.includes('raccolt') || t.includes('potatur') || t.includes('talea')) {
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+  }
+  if (campi.length === 0) {
+    campi.push({ campo: 'Stato salute', valore: '✅ OK', label: 'Stato → OK' });
+  }
+  return campi;
+},
+
+async confermAzione() {
+  const alert = this.modalAlert.alert;
+  const campi = this.modalAlert.campiDaAggiornare;
+  const nomePianta = this._estraiNomePianta(alert.testo);
+  campi.forEach(c => {
+    if (c.campo === '_semina_oggi') {
+      const idx = this.semine.findIndex(s => s['Specie'] === nomePianta);
+      if (idx >= 0) { this.semine[idx]['Data semina'] = c.valore; Storage.salva('semine', this.semine); }
+      return;
+    }
+    if (c.campo === '_trapianto_oggi') {
+      const idx = this.semine.findIndex(s => s['Specie'] === nomePianta);
+      if (idx >= 0) { this.semine[idx]['Data trapianto\nvaso definitivo'] = c.valore; Storage.salva('semine', this.semine); }
+      return;
+    }
+    const idx = this.inventario.findIndex(p => p['Nome comune'] === nomePianta);
+    if (idx >= 0) {
+      this.inventario[idx][c.campo] = c.valore;
+      if (this.piantaSel && this.piantaSel['Nome comune'] === nomePianta) {
+        this.piantaSel[c.campo] = c.valore;
+      }
+    }
+  });
+  Storage.salva('inventario', this.inventario);
+  this.alertChiusi[alert.testo] = true;
+  Storage.salvaConfig({ alertChiusi: this.alertChiusi, spuntati: this.spuntati });
+  this.modalAlert.aperto = false;
+  this.mostraToast('✅ Aggiornato');
+},
+
+_estraiNomePianta(testo) {
+  const match = testo.match(/⚠️\s(.+?)\s—/);
+  return match ? match[1].trim() : '';
+},
+
+ricordamelo() {
+  this.modalAlert.aperto = false;
+},
+    
     toggleFatto(item) {
       const k = `${item.pianta}_${this.meseIdx}`;
       this.spuntati[k] = !this.spuntati[k];
@@ -267,6 +354,7 @@ Vue.createApp({
       this.semine     = Storage.carica('semine')     || [];
       this.config     = Storage.caricaConfig();
       this.spuntati   = this.config.spuntati || {};
+      this.alertChiusi = this.config.alertChiusi || {};
       this.notificheAttive = Notification.permission === 'granted';
       this.pronto = true;
       Notifiche.controllaOggi(this.calendario);
