@@ -122,7 +122,7 @@ const Import = {
   const headers = rows[0].c.map(c => c ? String(c.v || '').trim() : '');
 
   return rows
-    .slice(2)
+    .slice(1)
     .filter(r => r && r.c && r.c[0] && r.c[0].v)
     .filter(r => !String(r.c[0].v).startsWith('LEGENDA'))
     .map(r => {
