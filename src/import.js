@@ -111,28 +111,35 @@ const Import = {
         return obj;
       });
   },
+  
   _gvizToObjects(json) {
   const table = json.table;
   const rows  = table.rows || [];
-  if (rows.length < 1) return [];
+  const cols  = table.cols || [];
 
-  // Le intestazioni vere sono in table.cols ma spesso vuote
-  // Le intestazioni del foglio stanno nella PRIMA riga (indice 0) di rows
-  // I dati reali stanno dalla riga 1 in poi (saltando riga titolo e riga header)
-  
-  // Prima stampiamo cosa c'è nelle prime 3 righe per capire la struttura
-  console.log('row0:', JSON.stringify(rows[0]?.c?.map(c => c?.v)));
-  console.log('row1:', JSON.stringify(rows[1]?.c?.map(c => c?.v)));
-  console.log('row2:', JSON.stringify(rows[2]?.c?.map(c => c?.v)));
-  console.log('cols:', JSON.stringify(table.cols?.map(c => c?.label)));
+  // Controlla se cols ha contenuto utile
+  const colsHaveData = cols.some(c => c.label && c.label.trim() !== '');
 
-  // Usa cols come intestazioni se hanno contenuto, altrimenti row0
-  let headers = table.cols.map(c => String(c.label || '').trim());
-  if (headers.every(h => h === '')) {
-    headers = (rows[0].c || []).map(c => c ? String(c.v || '').trim() : '');
+  let headers, dataRows;
+
+  if (colsHaveData) {
+    // Inventario: intestazioni in cols, dati in rows dalla riga 0
+    // La prima colonna di cols ha il titolo del foglio attaccato — lo puliamo
+    headers = cols.map((c, i) => {
+      let label = String(c.label || '').trim();
+      // rimuove il titolo del foglio dalla prima intestazione
+      if (i === 0 && label.includes('Nome comune')) {
+        label = 'Nome comune';
+      }
+      return label;
+    });
+    dataRows = rows;
+  } else {
+    // Calendario e Semine: intestazioni in row1, dati da row2 in poi
+    if (rows.length < 2) return [];
+    headers  = (rows[1].c || []).map(c => c ? String(c.v || '').trim() : '');
+    dataRows = rows.slice(2);
   }
-
-  const dataRows = headers.every(h => h === '') ? rows : rows.slice(1);
 
   return dataRows
     .filter(r => r && r.c && r.c[0] && r.c[0].v)
